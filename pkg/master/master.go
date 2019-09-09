@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net"
+
+	"github.com/sirupsen/logrus"
 )
 
 type UserID int64
@@ -69,7 +71,7 @@ func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
 	content, _ := ioutil.ReadAll(fileContentStream)
 	_, err := conn.Write(content)
 	if err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 	}
 
 	// Stream file content to it with metadata about replicas

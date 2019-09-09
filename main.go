@@ -2,28 +2,28 @@ package main
 
 import (
 	"ds/pkg/actions"
-	"fmt"
-	"gopkg.in/urfave/cli.v2"
 	"os"
-)
 
+	"github.com/sirupsen/logrus"
+	"gopkg.in/urfave/cli.v2"
+)
 
 func main() {
 	app := &cli.App{
 		Action: func(c *cli.Context) error {
-			fmt.Println("run master or slave")
+			logrus.Info("run master or slave")
 			return nil
 		},
 		Commands: []*cli.Command{
 			{
-				Name:    "master",
-				Usage:   "Starts the master node",
+				Name:   "master",
+				Usage:  "Starts the master node",
 				Action: actions.StartMaster,
 			},
 			{
-				Name:    "slave",
-				Usage:   "Starts the slave node",
-				Action:  actions.StartSlave,
+				Name:   "slave",
+				Usage:  "Starts the slave node",
+				Action: actions.StartSlave,
 			},
 		},
 	}

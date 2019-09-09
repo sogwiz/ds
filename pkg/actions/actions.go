@@ -2,13 +2,13 @@ package actions
 
 import (
 	"ds/pkg/slave"
-	"fmt"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/urfave/cli.v2"
 )
 
 func StartMaster(c *cli.Context) error {
-	fmt.Println("Starts master")
+	logrus.Info("Starts master")
 	return nil
 }
 
