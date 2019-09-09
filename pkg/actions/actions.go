@@ -2,6 +2,7 @@ package actions
 
 import (
 	"ds/pkg/slave"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/urfave/cli.v2"
@@ -9,6 +10,9 @@ import (
 
 func StartMaster(c *cli.Context) error {
 	logrus.Info("Starts master")
+	for {
+		time.Sleep(10 * time.Second)
+	}
 	return nil
 }
 
