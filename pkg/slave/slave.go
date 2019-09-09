@@ -1,8 +1,11 @@
 package slave
 
 import (
+	"context"
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 )
 
 func handleRequest(conn net.Conn) {
@@ -22,33 +25,50 @@ func handleRequest(conn net.Conn) {
 	}
 }
 
-func StartTCPServer() {
-	//c1, cancel := context.WithCancel(context.Background())
-	//exitCh := make(chan struct{})
-	//
-	//go func(ctx context.Context) {
-	l, err := net.Listen("tcp", "localhost:3333")
-	if err != nil {
-		panic(err)
-	}
-	for {
+func acceptConn(l net.Listener) <-chan net.Conn {
+	ch := make(chan net.Conn)
+	go func() {
 		conn, err := l.Accept()
 		if err != nil {
 			fmt.Println(err)
-			continue
+			close(ch)
 		}
-		go handleRequest(conn)
-	}
-	//}(c1)
-	//
-	//signalCh := make(chan os.Signal, 1)
-	//signal.Notify(signalCh, os.Interrupt)
-	//go func() {
-	//	select {
-	//	case <-signalCh:
-	//		cancel()
-	//		return
-	//	}
-	//}()
-	//<-exitCh
+		ch <- conn
+		close(ch)
+	}()
+	return ch
+}
+
+func StartTCPServer() {
+	c1, cancel := context.WithCancel(context.Background())
+	exitCh := make(chan struct{})
+
+	go func(ctx context.Context) {
+		fmt.Println("slave server listening on localhost:3333")
+		l, err := net.Listen("tcp", "localhost:3333")
+		if err != nil {
+			panic(err)
+		}
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("cancelled")
+				close(exitCh)
+				return
+			case conn := <-acceptConn(l):
+				go handleRequest(conn)
+			}
+		}
+	}(c1)
+
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt)
+	go func() {
+		select {
+		case <-signalCh:
+			cancel()
+			return
+		}
+	}()
+	<-exitCh
 }
