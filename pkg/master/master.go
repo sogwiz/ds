@@ -15,7 +15,6 @@ func init() {
 	meta = metadata.NewMetadata()
 	meta.SetNumReplica(3)
 	meta.AddNodes([]metadata.HostName{"IP1", "IP2", "IP3", "IP4", "IP5", "IP6"})
-	meta.SetUserNodes(metadata.UserID(1), []metadata.HostName{"IP1", "IP2", "IP3"})
 }
 
 // Generates "num" random unique indexes
@@ -33,23 +32,23 @@ func generateRandomHostnames(num int32) (hostnames []metadata.HostName) {
 	return
 }
 
-func createUserInMetadata(userID metadata.UserID) {
+func createfileInMetadata(file metadata.FileName) {
 	if meta.GetNodesCount() < meta.GetNumReplica() {
 		panic("not enough nodes, need at least 3")
 	}
-	meta.SetUserNodes(userID, generateRandomHostnames(meta.GetNumReplica()))
+	meta.SetFileNodes(file, generateRandomHostnames(meta.GetNumReplica()))
 }
 
-func PutFile(userID metadata.UserID, fileName string, fileContentStream io.Reader) {
-	userNodes, userExists := meta.GetUserNodes(userID)
+func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
+	userNodes, userExists := meta.GetFileNodes(filename)
 	if !userExists {
-		createUserInMetadata(userID)
+		createfileInMetadata(filename)
 	}
 
 	// Open connection to node1
 	conn, _ := net.Dial("tcp", "localhost:3333")
 
-	_, _ = conn.Write([]byte(fileName + "|"))
+	_, _ = conn.Write([]byte(string(filename) + "|"))
 
 	// TODO: could use some stream compression or blocks compression (lz4 ?)
 	// Read 1024 bytes at the time and stream it to slave

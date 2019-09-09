@@ -8,18 +8,20 @@ import (
 
 type UserID int64
 
+type FileName string
+
 type HostName string
 
 type Metadata struct {
 	sync.RWMutex
 	numReplica  int32 // atomic value
-	users       map[UserID][]HostName
+	files       map[FileName][]HostName
 	allNodesMap map[HostName]bool
 }
 
 func NewMetadata() *Metadata {
 	m := new(Metadata)
-	m.users = make(map[UserID][]HostName)
+	m.files = make(map[FileName][]HostName)
 	m.allNodesMap = make(map[HostName]bool)
 	return m
 }
@@ -52,16 +54,16 @@ func (m *Metadata) GetNodesCount() int32 {
 	return int32(len(m.allNodesMap))
 }
 
-func (m *Metadata) SetUserNodes(userID UserID, nodes []HostName) {
+func (m *Metadata) SetFileNodes(file FileName, nodes []HostName) {
 	m.Lock()
 	defer m.Unlock()
-	m.users[userID] = nodes
+	m.files[file] = nodes
 }
 
-func (m *Metadata) GetUserNodes(userID UserID) (hostnames []HostName, exists bool) {
+func (m *Metadata) GetFileNodes(file FileName) (hostnames []HostName, exists bool) {
 	m.Lock()
 	defer m.Unlock()
-	hostnames, exists = m.users[userID]
+	hostnames, exists = m.files[file]
 	return
 }
 
