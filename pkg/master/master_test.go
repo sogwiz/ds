@@ -2,6 +2,7 @@ package master
 
 import (
 	"bytes"
+	"ds/pkg/master/metadata"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +14,6 @@ import (
 func TestPutFile(t *testing.T) {
 	homeDir, _ := os.UserHomeDir()
 	fileContent, _ := ioutil.ReadFile(filepath.Join(homeDir, "go", "src", "ds", "main.go"))
-	PutFile(UserID(1), "myfile.txt", bytes.NewReader(fileContent))
+	PutFile(metadata.UserID(1), "myfile.txt", bytes.NewReader(fileContent))
 	assert.True(t, false)
 }
