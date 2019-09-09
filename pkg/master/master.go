@@ -28,6 +28,12 @@ func (m *Metadata) AddNode(hostname HostName) {
 	m.allNodesMap[hostname] = true
 }
 
+func (m *Metadata) SetUserNodes(userID UserID, nodes []HostName) {
+	m.Lock()
+	defer m.Unlock()
+	m.users[userID] = nodes
+}
+
 var meta Metadata
 
 func init() {
@@ -76,7 +82,7 @@ func createUserInMetadata(userID UserID) {
 	if len(meta.allNodesMap) < meta.numReplica {
 		panic("not enough nodes, need at least 3")
 	}
-	meta.users[userID] = generateRandomHostnames(meta.numReplica)
+	meta.SetUserNodes(userID, generateRandomHostnames(meta.numReplica))
 }
 
 func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
