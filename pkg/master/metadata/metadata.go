@@ -6,12 +6,13 @@ import (
 	"sync/atomic"
 )
 
-type UserID int64
-
+// FileName ...
 type FileName string
 
+// HostName ...
 type HostName string
 
+// Metadata ...
 type Metadata struct {
 	sync.RWMutex
 	numReplica  int32 // atomic value
@@ -19,6 +20,7 @@ type Metadata struct {
 	allNodesMap map[HostName]bool
 }
 
+// NewMetadata ...
 func NewMetadata() *Metadata {
 	m := new(Metadata)
 	m.files = make(map[FileName][]HostName)
@@ -26,47 +28,77 @@ func NewMetadata() *Metadata {
 	return m
 }
 
+// GetNumReplica ...
 func (m *Metadata) GetNumReplica() int32 {
 	return atomic.LoadInt32(&m.numReplica)
 }
 
+// SetNumReplica ...
 func (m *Metadata) SetNumReplica(num int32) {
 	atomic.StoreInt32(&m.numReplica, num)
 }
 
+// AddNode ...
 func (m *Metadata) AddNode(hostname HostName) {
 	m.Lock()
 	defer m.Unlock()
-	m.allNodesMap[hostname] = true
+	m.addNode(hostname)
 }
 
+// AddNodes ...
 func (m *Metadata) AddNodes(hostnames []HostName) {
 	m.Lock()
 	defer m.Unlock()
+	m.addNodes(hostnames)
+}
+
+// GetNodesCount ...
+func (m *Metadata) GetNodesCount() int32 {
+	m.Lock()
+	defer m.Unlock()
+	return m.getNodesCount()
+}
+
+// SetFileNodes ...
+func (m *Metadata) SetFileNodes(file FileName, nodes []HostName) {
+	m.Lock()
+	defer m.Unlock()
+	m.setFileNodes(file, nodes)
+}
+
+// GetOrCreateFileNodes ...
+func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames []HostName) {
+	m.Lock()
+	defer m.Unlock()
+	return m.getOrCreateFileNodes(file)
+}
+
+// GetFileNodes ...
+func (m *Metadata) GetFileNodes(file FileName) (hostnames []HostName, exists bool) {
+	m.Lock()
+	defer m.Unlock()
+	return m.getFileNodes(file)
+}
+
+func (m *Metadata) addNode(hostname HostName) {
+	m.allNodesMap[hostname] = true
+}
+
+func (m *Metadata) addNodes(hostnames []HostName) {
 	for _, hostname := range hostnames {
 		m.allNodesMap[hostname] = true
 	}
 }
 
-func (m *Metadata) GetNodesCount() int32 {
-	m.Lock()
-	defer m.Unlock()
+func (m *Metadata) getNodesCount() int32 {
 	return int32(len(m.allNodesMap))
-}
-
-func (m *Metadata) SetFileNodes(file FileName, nodes []HostName) {
-	m.Lock()
-	defer m.Unlock()
-	m.files[file] = nodes
 }
 
 func (m *Metadata) setFileNodes(file FileName, nodes []HostName) {
 	m.files[file] = nodes
 }
 
-func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames []HostName) {
-	m.Lock()
-	defer m.Unlock()
+func (m *Metadata) getOrCreateFileNodes(file FileName) (hostnames []HostName) {
 	hostnames, exists := m.getFileNodes(file)
 	if exists {
 		return hostnames
@@ -74,12 +106,6 @@ func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames []HostName) {
 	hostnames = m.generateRandomHostnames()
 	m.setFileNodes(file, hostnames)
 	return hostnames
-}
-
-func (m *Metadata) GetFileNodes(file FileName) (hostnames []HostName, exists bool) {
-	m.Lock()
-	defer m.Unlock()
-	return m.getFileNodes(file)
 }
 
 func (m *Metadata) getFileNodes(file FileName) (hostnames []HostName, exists bool) {
