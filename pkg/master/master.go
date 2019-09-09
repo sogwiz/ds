@@ -20,6 +20,7 @@ func init() {
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	fileNodes := meta.GetOrCreateFileNodes(filename)
 
+	// TODO: linked list, so datanode transfer file with each others instead of master node
 	for _, fileNode := range fileNodes {
 		// Open connection to node1
 		conn, err := net.Dial("tcp", string(fileNode))
