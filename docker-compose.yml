@@ -1,0 +1,87 @@
+version: '3'
+
+services:
+  master:
+    hostname: "master"
+    image: ds
+    restart: always
+    command: master
+    volumes:
+      - $HOME/ds/master/data:/root/data
+    networks:
+      - default
+
+  slave1:
+    hostname: "slave1"
+    image: ds
+    restart: always
+    command: slave
+    ports:
+      - "3333:3333"
+    volumes:
+      - $HOME/ds/slave1/data:/root/data
+    networks:
+      - default
+
+  slave2:
+    hostname: "slave2"
+    image: ds
+    restart: always
+    command: slave
+    ports:
+      - "3334:3333"
+    volumes:
+      - $HOME/ds/slave2/data:/root/data
+    networks:
+      - default
+
+  slave3:
+    hostname: "slave3"
+    image: ds
+    restart: always
+    command: slave
+    ports:
+      - "3335:3333"
+    volumes:
+      - $HOME/ds/slave3/data:/root/data
+    networks:
+      - default
+
+  slave4:
+    hostname: "slave4"
+    image: ds
+    restart: always
+    command: slave
+    ports:
+      - "3336:3333"
+    volumes:
+      - $HOME/ds/slave4/data:/root/data
+    networks:
+      - default
+
+  slave5:
+    hostname: "slave5"
+    image: ds
+    restart: always
+    command: slave
+    ports:
+      - "3337:3333"
+    volumes:
+      - $HOME/ds/slave5/data:/root/data
+    networks:
+      - default
+
+  slave6:
+    hostname: "slave6"
+    image: ds
+    restart: always
+    command: slave
+    ports:
+      - "3338:3333"
+    volumes:
+      - $HOME/ds/slave6/data:/root/data
+    networks:
+      - default
+
+networks:
+  default:
