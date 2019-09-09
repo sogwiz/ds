@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 )
@@ -15,17 +16,24 @@ type UserID int64
 type HostName string
 
 type Metadata struct {
-	NumReplica  int
-	Users       map[UserID][]HostName
-	AllNodesMap map[HostName]bool
+	sync.RWMutex
+	numReplica  int
+	users       map[UserID][]HostName
+	allNodesMap map[HostName]bool
+}
+
+func (m *Metadata) AddNode(hostname HostName) {
+	m.Lock()
+	defer m.Unlock()
+	m.allNodesMap[hostname] = true
 }
 
 var meta Metadata
 
 func init() {
 	meta = Metadata{}
-	meta.NumReplica = 3
-	meta.AllNodesMap = map[HostName]bool{
+	meta.numReplica = 3
+	meta.allNodesMap = map[HostName]bool{
 		"IP1": true,
 		"IP2": true,
 		"IP3": true,
@@ -33,14 +41,14 @@ func init() {
 		"IP5": true,
 		"IP6": true,
 	}
-	meta.Users = make(map[UserID][]HostName)
-	meta.Users[UserID(1)] = []HostName{"IP1", "IP2", "IP3"}
+	meta.users = make(map[UserID][]HostName)
+	meta.users[UserID(1)] = []HostName{"IP1", "IP2", "IP3"}
 }
 
 // Pick a random hostname from the meta nodes map
 func randHostName() HostName {
-	i := rand.Intn(len(meta.AllNodesMap))
-	for k := range meta.AllNodesMap {
+	i := rand.Intn(len(meta.allNodesMap))
+	for k := range meta.allNodesMap {
 		if i == 0 {
 			return k
 		}
@@ -65,17 +73,17 @@ func generateRandomHostnames(num int) (indexesArr []HostName) {
 }
 
 func createUserInMetadata(userID UserID) {
-	if len(meta.AllNodesMap) < meta.NumReplica {
+	if len(meta.allNodesMap) < meta.numReplica {
 		panic("not enough nodes, need at least 3")
 	}
-	hostnames := generateRandomHostnames(meta.NumReplica)
+	hostnames := generateRandomHostnames(meta.numReplica)
 	// Add Nodes to user nodes
 	meta.users[userID] = make([]HostName, 0)
 	meta.users[userID] = append(meta.users[userID], hostnames...)
 }
 
 func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
-	userNodes, userExists := meta.Users[userID]
+	userNodes, userExists := meta.users[userID]
 	if !userExists {
 		createUserInMetadata(userID)
 	}
@@ -95,5 +103,5 @@ func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
 }
 
 func CreateNewSlaveNode(ip string) {
-	meta.AllNodesMap[HostName(ip)] = true
+	meta.AddNode(HostName(ip))
 }
