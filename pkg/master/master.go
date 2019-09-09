@@ -20,33 +20,35 @@ func init() {
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	fileNodes := meta.GetOrCreateFileNodes(filename)
 
-	// Open connection to node1
-	conn, err := net.Dial("tcp", "localhost:3333")
-	if err != nil {
-		panic(err)
-	}
-
-	_, _ = conn.Write([]byte(string(filename) + "|"))
-
-	// TODO: could use some stream compression or blocks compression (lz4 ?)
-	// Read 1024 bytes at the time and stream it to slave
-	buf := make([]byte, 1024)
-	for {
-		n, err := fileContentStream.Read(buf)
-		if err != nil && err != io.EOF {
+	for _, fileNode := range fileNodes {
+		// Open connection to node1
+		conn, err := net.Dial("tcp", string(fileNode))
+		if err != nil {
 			panic(err)
 		}
-		if n == 0 {
-			break
+
+		_, _ = conn.Write([]byte(string(filename) + "|"))
+
+		// TODO: could use some stream compression or blocks compression (lz4 ?)
+		// Read 1024 bytes at the time and stream it to slave
+		buf := make([]byte, 1024)
+		for {
+			n, err := fileContentStream.Read(buf)
+			if err != nil && err != io.EOF {
+				panic(err)
+			}
+			if n == 0 {
+				break
+			}
+			if _, err := conn.Write(buf[:n]); err != nil {
+				logrus.Error(err)
+			}
 		}
-		if _, err := conn.Write(buf[:n]); err != nil {
-			logrus.Error(err)
-		}
+
+		// Stream file content to it with metadata about replicas
+
+		fmt.Println("nodes:", fileNodes)
 	}
-
-	// Stream file content to it with metadata about replicas
-
-	fmt.Println("nodes:", fileNodes)
 }
 
 func CreateNewSlaveNode(ip string) {
