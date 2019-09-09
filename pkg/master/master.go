@@ -46,9 +46,9 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 		}
 
 		// Stream file content to it with metadata about replicas
-
-		fmt.Println("nodes:", fileNodes)
 	}
+
+	fmt.Println("nodes:", fileNodes)
 }
 
 func CreateNewSlaveNode(ip string) {
