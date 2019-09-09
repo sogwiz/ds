@@ -60,17 +60,35 @@ func (m *Metadata) SetFileNodes(file FileName, nodes []HostName) {
 	m.files[file] = nodes
 }
 
+func (m *Metadata) setFileNodes(file FileName, nodes []HostName) {
+	m.files[file] = nodes
+}
+
+func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames []HostName) {
+	m.Lock()
+	defer m.Unlock()
+	hostnames, exists := m.getFileNodes(file)
+	if exists {
+		return hostnames
+	}
+	hostnames = m.generateRandomHostnames()
+	m.setFileNodes(file, hostnames)
+	return hostnames
+}
+
 func (m *Metadata) GetFileNodes(file FileName) (hostnames []HostName, exists bool) {
 	m.Lock()
 	defer m.Unlock()
+	return m.getFileNodes(file)
+}
+
+func (m *Metadata) getFileNodes(file FileName) (hostnames []HostName, exists bool) {
 	hostnames, exists = m.files[file]
 	return
 }
 
 // Pick a random hostname from the meta nodes map
-func (m *Metadata) GetRandomHostName() HostName {
-	m.Lock()
-	defer m.Unlock()
+func (m *Metadata) getRandomHostName() HostName {
 	i := rand.Intn(len(m.allNodesMap))
 	for k := range m.allNodesMap {
 		if i == 0 {
@@ -79,4 +97,19 @@ func (m *Metadata) GetRandomHostName() HostName {
 		i--
 	}
 	panic("never")
+}
+
+// Generates "num" random unique indexes
+func (m *Metadata) generateRandomHostnames() (hostnames []HostName) {
+	hostnamesMap := make(map[HostName]bool)
+	for int32(len(hostnamesMap)) != m.GetNumReplica() {
+		tmpHostName := m.getRandomHostName()
+		_, exists := hostnamesMap[tmpHostName]
+		if exists {
+			continue
+		}
+		hostnames = append(hostnames, tmpHostName)
+		hostnamesMap[tmpHostName] = true
+	}
+	return
 }

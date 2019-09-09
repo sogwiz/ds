@@ -17,33 +17,8 @@ func init() {
 	meta.AddNodes([]metadata.HostName{"IP1", "IP2", "IP3", "IP4", "IP5", "IP6"})
 }
 
-// Generates "num" random unique indexes
-func generateRandomHostnames(num int32) (hostnames []metadata.HostName) {
-	hostnamesMap := make(map[metadata.HostName]bool)
-	for int32(len(hostnamesMap)) != num {
-		tmpHostName := meta.GetRandomHostName()
-		_, exists := hostnamesMap[tmpHostName]
-		if exists {
-			continue
-		}
-		hostnames = append(hostnames, tmpHostName)
-		hostnamesMap[tmpHostName] = true
-	}
-	return
-}
-
-func createfileInMetadata(file metadata.FileName) {
-	if meta.GetNodesCount() < meta.GetNumReplica() {
-		panic("not enough nodes, need at least 3")
-	}
-	meta.SetFileNodes(file, generateRandomHostnames(meta.GetNumReplica()))
-}
-
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
-	userNodes, userExists := meta.GetFileNodes(filename)
-	if !userExists {
-		createfileInMetadata(filename)
-	}
+	fileNodes := meta.GetOrCreateFileNodes(filename)
 
 	// Open connection to node1
 	conn, _ := net.Dial("tcp", "localhost:3333")
@@ -68,7 +43,7 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 
 	// Stream file content to it with metadata about replicas
 
-	fmt.Println(userNodes)
+	fmt.Println("nodes:", fileNodes)
 }
 
 func CreateNewSlaveNode(ip string) {
