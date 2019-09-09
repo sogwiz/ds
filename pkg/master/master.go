@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"sync"
+	"sync/atomic"
 
 	"github.com/sirupsen/logrus"
 )
@@ -17,9 +18,21 @@ type HostName string
 
 type Metadata struct {
 	sync.RWMutex
-	numReplica  int
+	numReplica  int32 // atomic value
 	users       map[UserID][]HostName
 	allNodesMap map[HostName]bool
+}
+
+func NewMetadata() *Metadata {
+	return new(Metadata)
+}
+
+func (m *Metadata) GetNumReplica() int32 {
+	return atomic.LoadInt32(&m.numReplica)
+}
+
+func (m *Metadata) SetNumReplica(num int32) {
+	atomic.StoreInt32(&m.numReplica, num)
 }
 
 func (m *Metadata) AddNode(hostname HostName) {
@@ -28,31 +41,37 @@ func (m *Metadata) AddNode(hostname HostName) {
 	m.allNodesMap[hostname] = true
 }
 
+func (m *Metadata) AddNodes(hostnames []HostName) {
+	m.Lock()
+	defer m.Unlock()
+	for _, hostname := range hostnames {
+		m.allNodesMap[hostname] = true
+	}
+}
+
+func (m *Metadata) GetNodesCount() int32 {
+	m.Lock()
+	defer m.Unlock()
+	return int32(len(m.allNodesMap))
+}
+
 func (m *Metadata) SetUserNodes(userID UserID, nodes []HostName) {
 	m.Lock()
 	defer m.Unlock()
 	m.users[userID] = nodes
 }
 
-var meta Metadata
-
-func init() {
-	meta = Metadata{}
-	meta.numReplica = 3
-	meta.allNodesMap = map[HostName]bool{
-		"IP1": true,
-		"IP2": true,
-		"IP3": true,
-		"IP4": true,
-		"IP5": true,
-		"IP6": true,
-	}
-	meta.users = make(map[UserID][]HostName)
-	meta.users[UserID(1)] = []HostName{"IP1", "IP2", "IP3"}
+func (m *Metadata) GetUserNodes(userID UserID) (hostnames []HostName, exists bool) {
+	m.Lock()
+	defer m.Unlock()
+	hostnames, exists = m.users[userID]
+	return
 }
 
 // Pick a random hostname from the meta nodes map
-func randHostName() HostName {
+func (m *Metadata) GetRandomHostName() HostName {
+	m.Lock()
+	defer m.Unlock()
 	i := rand.Intn(len(meta.allNodesMap))
 	for k := range meta.allNodesMap {
 		if i == 0 {
@@ -63,11 +82,20 @@ func randHostName() HostName {
 	panic("never")
 }
 
+var meta *Metadata
+
+func init() {
+	meta = NewMetadata()
+	meta.SetNumReplica(3)
+	meta.AddNodes([]HostName{"IP1", "IP2", "IP3", "IP4", "IP5", "IP6"})
+	meta.SetUserNodes(UserID(1), []HostName{"IP1", "IP2", "IP3"})
+}
+
 // Generates "num" random unique indexes
-func generateRandomHostnames(num int) (hostnames []HostName) {
+func generateRandomHostnames(num int32) (hostnames []HostName) {
 	hostnamesMap := make(map[HostName]bool)
-	for len(hostnamesMap) != num {
-		tmpHostName := randHostName()
+	for int32(len(hostnamesMap)) != num {
+		tmpHostName := meta.GetRandomHostName()
 		_, exists := hostnamesMap[tmpHostName]
 		if exists {
 			continue
@@ -79,14 +107,14 @@ func generateRandomHostnames(num int) (hostnames []HostName) {
 }
 
 func createUserInMetadata(userID UserID) {
-	if len(meta.allNodesMap) < meta.numReplica {
+	if meta.GetNodesCount() < meta.GetNumReplica() {
 		panic("not enough nodes, need at least 3")
 	}
-	meta.SetUserNodes(userID, generateRandomHostnames(meta.numReplica))
+	meta.SetUserNodes(userID, generateRandomHostnames(meta.GetNumReplica()))
 }
 
 func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
-	userNodes, userExists := meta.users[userID]
+	userNodes, userExists := meta.GetUserNodes(userID)
 	if !userExists {
 		createUserInMetadata(userID)
 	}
