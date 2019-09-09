@@ -12,14 +12,12 @@ import (
 
 type UserID int64
 
-type Node struct {
-	IP string
-}
+type HostName string
 
 type Metadata struct {
-	NumReplica int
-	Users      map[UserID][]Node
-	AllNodes   []Node
+	NumReplica  int
+	Users       map[UserID][]HostName
+	AllNodesMap map[HostName]bool
 }
 
 var meta Metadata
@@ -27,35 +25,54 @@ var meta Metadata
 func init() {
 	meta = Metadata{}
 	meta.NumReplica = 3
-	meta.AllNodes = []Node{{"IP1"}, {"IP2"}, {"IP3"}, {"IP4"}, {"IP5"}, {"IP6"}}
-	meta.Users = make(map[UserID][]Node)
-	meta.Users[UserID(1)] = []Node{{"IP1"}, {"IP2"}, {"IP3"}}
+	meta.AllNodesMap = map[HostName]bool{
+		"IP1": true,
+		"IP2": true,
+		"IP3": true,
+		"IP4": true,
+		"IP5": true,
+		"IP6": true,
+	}
+	meta.Users = make(map[UserID][]HostName)
+	meta.Users[UserID(1)] = []HostName{"IP1", "IP2", "IP3"}
+}
+
+// Pick a random hostname from the meta nodes map
+func randHostName() HostName {
+	i := rand.Intn(len(meta.AllNodesMap))
+	for k := range meta.AllNodesMap {
+		if i == 0 {
+			return k
+		}
+		i--
+	}
+	panic("never")
 }
 
 // Generates "num" random unique indexes
-func generateRandomIndexes(num int) (indexesArr []int) {
-	indexesMap := make(map[int]bool)
+func generateRandomIndexes(num int) (indexesArr []HostName) {
+	indexesMap := make(map[HostName]bool)
 	for len(indexesMap) != num {
-		tmpNum := rand.Intn(len(meta.AllNodes))
-		_, exists := indexesMap[tmpNum]
+		tmpHostName := randHostName()
+		_, exists := indexesMap[tmpHostName]
 		if exists {
 			continue
 		}
-		indexesArr = append(indexesArr, tmpNum)
-		indexesMap[tmpNum] = true
+		indexesArr = append(indexesArr, tmpHostName)
+		indexesMap[tmpHostName] = true
 	}
 	return
 }
 
 func createUserInMetadata(userID UserID) {
-	if len(meta.AllNodes) < meta.NumReplica {
+	if len(meta.AllNodesMap) < meta.NumReplica {
 		panic("not enough nodes, need at least 3")
 	}
 	indexesArr := generateRandomIndexes(meta.NumReplica)
 	// Add Nodes to user nodes
-	meta.Users[userID] = make([]Node, 0)
-	for _, index := range indexesArr {
-		meta.Users[userID] = append(meta.Users[userID], meta.AllNodes[index])
+	meta.Users[userID] = make([]HostName, 0)
+	for _, hostname := range indexesArr {
+		meta.Users[userID] = append(meta.Users[userID], hostname)
 	}
 }
 
@@ -80,6 +97,5 @@ func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
 }
 
 func CreateNewSlaveNode(ip string) {
-	// TODO: Add validation if node already exists. (should we use a map instead of an array)
-	meta.AllNodes = append(meta.AllNodes, Node{IP: ip})
+	meta.AllNodesMap[HostName(ip)] = true
 }
