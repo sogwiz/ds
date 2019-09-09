@@ -50,7 +50,7 @@ func randHostName() HostName {
 }
 
 // Generates "num" random unique indexes
-func generateRandomIndexes(num int) (indexesArr []HostName) {
+func generateRandomHostnames(num int) (indexesArr []HostName) {
 	indexesMap := make(map[HostName]bool)
 	for len(indexesMap) != num {
 		tmpHostName := randHostName()
@@ -68,7 +68,7 @@ func createUserInMetadata(userID UserID) {
 	if len(meta.AllNodesMap) < meta.NumReplica {
 		panic("not enough nodes, need at least 3")
 	}
-	indexesArr := generateRandomIndexes(meta.NumReplica)
+	indexesArray := generateRandomHostnames(meta.NumReplica)
 	// Add Nodes to user nodes
 	meta.Users[userID] = make([]HostName, 0)
 	for _, hostname := range indexesArr {
