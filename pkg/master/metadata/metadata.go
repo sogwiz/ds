@@ -18,7 +18,10 @@ type Metadata struct {
 }
 
 func NewMetadata() *Metadata {
-	return new(Metadata)
+	m := new(Metadata)
+	m.users = make(map[UserID][]HostName)
+	m.allNodesMap = make(map[HostName]bool)
+	return m
 }
 
 func (m *Metadata) GetNumReplica() int32 {
