@@ -14,7 +14,7 @@ var meta *metadata.Metadata
 func init() {
 	meta = metadata.NewMetadata()
 	meta.SetNumReplica(3)
-	meta.AddNodes([]metadata.HostName{"IP1", "IP2", "IP3", "IP4", "IP5", "IP6"})
+	meta.AddNodes([]metadata.HostName{"localhost:3333", "localhost:3334", "localhost:3335", "localhost:3336", "localhost:3337", "localhost:3338"})
 }
 
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {

@@ -20,9 +20,10 @@ func handleRequest(conn net.Conn) {
 	filename = strings.TrimSuffix(filename, "|")
 
 	// Read the incoming connection into the buffer.
+	homedir, _ := os.UserHomeDir()
 	dir, file := filepath.Split(filename)
-	_ = os.MkdirAll(filepath.Join("data", dir), 0777)
-	fo, err := os.Create(filepath.Join("data", dir, file))
+	_ = os.MkdirAll(filepath.Join(homedir, "data", dir), 0777)
+	fo, err := os.Create(filepath.Join(homedir, "data", dir, file))
 	if err != nil {
 		panic(err)
 	}
@@ -75,8 +76,8 @@ func StartTCPServer() {
 	exitCh := make(chan struct{})
 
 	go func(ctx context.Context) {
-		logrus.Info("slave server listening on localhost:3333")
-		l, err := net.Listen("tcp", "localhost:3333")
+		logrus.Info("slave server listening on 0.0.0.0:3333")
+		l, err := net.Listen("tcp", "0.0.0.0:3333")
 		if err != nil {
 			panic(err)
 		}
