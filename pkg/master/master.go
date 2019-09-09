@@ -21,7 +21,10 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	fileNodes := meta.GetOrCreateFileNodes(filename)
 
 	// Open connection to node1
-	conn, _ := net.Dial("tcp", "localhost:3333")
+	conn, err := net.Dial("tcp", "localhost:3333")
+	if err != nil {
+		panic(err)
+	}
 
 	_, _ = conn.Write([]byte(string(filename) + "|"))
 
