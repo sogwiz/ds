@@ -1,19 +1,25 @@
 package slave
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
 func handleRequest(conn net.Conn) {
+	reader := bufio.NewReader(conn)
+	filename, _ := reader.ReadString('|')
+	filename = strings.TrimSuffix(filename, "|")
+
 	// Read the incoming connection into the buffer.
-	fo, err := os.Create("output.txt")
+	fo, err := os.Create(filename)
 	if err != nil {
 		panic(err)
 	}
@@ -27,7 +33,7 @@ func handleRequest(conn net.Conn) {
 	// make a buffer to keep chunks that are read
 	buf := make([]byte, 1024)
 	for {
-		n, err := conn.Read(buf)
+		n, err := reader.Read(buf)
 		if err != nil && err != io.EOF {
 			panic(err)
 		}
@@ -40,7 +46,7 @@ func handleRequest(conn net.Conn) {
 		}
 	}
 
-	fmt.Println("received a file")
+	fmt.Println("received a file: " + filename)
 
 	if err := conn.Close(); err != nil {
 		logrus.Error(err)
