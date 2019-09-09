@@ -3,13 +3,16 @@ package master
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPutFile(t *testing.T) {
-	fileContent, _ := ioutil.ReadFile("/Users/agilbert/go/src/ds/main.go")
+	homeDir, _ := os.UserHomeDir()
+	fileContent, _ := ioutil.ReadFile(filepath.Join(homeDir, "go", "src", "ds", "main.go"))
 	PutFile(UserID(1), "myfile.txt", bytes.NewReader(fileContent))
 	assert.True(t, false)
 }
