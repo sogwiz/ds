@@ -20,9 +20,9 @@ func handleRequest(conn net.Conn) {
 	filename = strings.TrimSuffix(filename, "|")
 
 	// Read the incoming connection into the buffer.
-	dir, _ := filepath.Split(filename)
-	_ = os.MkdirAll(dir, 0777)
-	fo, err := os.Create(filename)
+	dir, file := filepath.Split(filename)
+	_ = os.MkdirAll(filepath.Join("data", dir), 0777)
+	fo, err := os.Create(filepath.Join("data", dir, file))
 	if err != nil {
 		panic(err)
 	}
