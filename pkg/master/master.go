@@ -72,8 +72,8 @@ func (m *Metadata) GetUserNodes(userID UserID) (hostnames []HostName, exists boo
 func (m *Metadata) GetRandomHostName() HostName {
 	m.Lock()
 	defer m.Unlock()
-	i := rand.Intn(len(meta.allNodesMap))
-	for k := range meta.allNodesMap {
+	i := rand.Intn(len(m.allNodesMap))
+	for k := range m.allNodesMap {
 		if i == 0 {
 			return k
 		}
