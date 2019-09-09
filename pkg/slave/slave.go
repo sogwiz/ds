@@ -19,6 +19,31 @@ func handleRequest(conn net.Conn) {
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
 
+	hostnamesRaw, _ := reader.ReadString('|')
+	hostnamesRaw = strings.TrimSuffix(hostnamesRaw, "|")
+	fmt.Println("received hostnames:", hostnamesRaw)
+	hostnames := strings.Split(hostnamesRaw, ",")
+
+	needToCopy := false
+
+	var hostnamesEncoded string
+	var nextConn net.Conn
+
+	if len(hostnames) == 0 {
+		logrus.Debug("should not copy to anyone else")
+	} else {
+		needToCopy = true
+
+		copyToHostname := hostnames[0]                      // We need to copy the file to this guy
+		hostnamesEncoded = strings.Join(hostnames[1:], ",") // This is the list of hostnames to pass along
+
+		var err error
+		nextConn, err = net.Dial("tcp", copyToHostname)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	// Read the incoming connection into the buffer.
 	homedir, _ := os.UserHomeDir()
 	dir, file := filepath.Split(filename)
@@ -34,19 +59,27 @@ func handleRequest(conn net.Conn) {
 		}
 	}()
 
-	// make a buffer to keep chunks that are read
-	buf := make([]byte, 1024)
-	for {
-		n, err := reader.Read(buf)
-		if err != nil && err != io.EOF {
+	if needToCopy {
+		_, _ = nextConn.Write([]byte(filename + "|"))
+		_, _ = nextConn.Write([]byte(hostnamesEncoded + "|"))
+		if _, err := io.Copy(io.MultiWriter(fo, nextConn), reader); err != nil {
 			panic(err)
 		}
-		if n == 0 {
-			break
-		}
-		// write a chunk
-		if _, err := fo.Write(buf[:n]); err != nil {
-			panic(err)
+	} else {
+		// make a buffer to keep chunks that are read
+		buf := make([]byte, 1024)
+		for {
+			n, err := reader.Read(buf)
+			if err != nil && err != io.EOF {
+				panic(err)
+			}
+			if n == 0 {
+				break
+			}
+			// write a chunk
+			if _, err := fo.Write(buf[:n]); err != nil {
+				panic(err)
+			}
 		}
 	}
 
