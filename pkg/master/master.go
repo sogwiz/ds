@@ -52,10 +52,14 @@ func PutFile(userID metadata.UserID, fileName string, fileContentStream io.Reade
 	// Read 4 bytes at the time and stream it to slave
 	buf := make([]byte, 4)
 	for {
-		if _, err := fileContentStream.Read(buf); err == io.EOF {
+		n, err := fileContentStream.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		if n == 0 {
 			break
 		}
-		if _, err := conn.Write(buf); err != nil {
+		if _, err := conn.Write(buf[:n]); err != nil {
 			logrus.Error(err)
 		}
 	}
