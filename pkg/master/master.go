@@ -58,16 +58,16 @@ func randHostName() HostName {
 }
 
 // Generates "num" random unique indexes
-func generateRandomHostnames(num int) (indexesArr []HostName) {
-	indexesMap := make(map[HostName]bool)
-	for len(indexesMap) != num {
+func generateRandomHostnames(num int) (hostnames []HostName) {
+	hostnamesMap := make(map[HostName]bool)
+	for len(hostnamesMap) != num {
 		tmpHostName := randHostName()
-		_, exists := indexesMap[tmpHostName]
+		_, exists := hostnamesMap[tmpHostName]
 		if exists {
 			continue
 		}
-		indexesArr = append(indexesArr, tmpHostName)
-		indexesMap[tmpHostName] = true
+		hostnames = append(hostnames, tmpHostName)
+		hostnamesMap[tmpHostName] = true
 	}
 	return
 }
