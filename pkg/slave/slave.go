@@ -3,6 +3,7 @@ package slave
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/signal"
@@ -11,16 +12,35 @@ import (
 )
 
 func handleRequest(conn net.Conn) {
-	// TODO: read... all the data (maybe more than 1024 bytes ?)
-	// Make a buffer to hold incoming data.
-	buf := make([]byte, 1024)
 	// Read the incoming connection into the buffer.
-	_, err := conn.Read(buf)
+	fo, err := os.Create("output.txt")
 	if err != nil {
-		logrus.Error("Error reading:", err.Error())
+		panic(err)
+	}
+	// close fo on exit and check for its returned error
+	defer func() {
+		if err := fo.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	// make a buffer to keep chunks that are read
+	buf := make([]byte, 1024)
+	for {
+		n, err := conn.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		if n == 0 {
+			break
+		}
+		// write a chunk
+		if _, err := fo.Write(buf[:n]); err != nil {
+			panic(err)
+		}
 	}
 
-	fmt.Println("received:", string(buf))
+	fmt.Println("received a file")
 
 	if err := conn.Close(); err != nil {
 		logrus.Error(err)

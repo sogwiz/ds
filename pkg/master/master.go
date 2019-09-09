@@ -4,7 +4,6 @@ import (
 	"ds/pkg/master/metadata"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 
 	"github.com/sirupsen/logrus"
@@ -50,10 +49,15 @@ func PutFile(userID metadata.UserID, fileName string, fileContentStream io.Reade
 	// Open connection to node1
 	conn, _ := net.Dial("tcp", "localhost:3333")
 
-	content, _ := ioutil.ReadAll(fileContentStream)
-	_, err := conn.Write(content)
-	if err != nil {
-		logrus.Error(err)
+	// Read 4 bytes at the time and stream it to slave
+	buf := make([]byte, 4)
+	for {
+		if _, err := fileContentStream.Read(buf); err == io.EOF {
+			break
+		}
+		if _, err := conn.Write(buf); err != nil {
+			logrus.Error(err)
+		}
 	}
 
 	// Stream file content to it with metadata about replicas
