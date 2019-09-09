@@ -68,12 +68,10 @@ func createUserInMetadata(userID UserID) {
 	if len(meta.AllNodesMap) < meta.NumReplica {
 		panic("not enough nodes, need at least 3")
 	}
-	indexesArray := generateRandomHostnames(meta.NumReplica)
+	hostnames := generateRandomHostnames(meta.NumReplica)
 	// Add Nodes to user nodes
-	meta.Users[userID] = make([]HostName, 0)
-	for _, hostname := range indexesArr {
-		meta.Users[userID] = append(meta.Users[userID], hostname)
-	}
+	meta.users[userID] = make([]HostName, 0)
+	meta.users[userID] = append(meta.users[userID], hostnames...)
 }
 
 func PutFile(userID UserID, fileName string, fileContentStream io.Reader) {
