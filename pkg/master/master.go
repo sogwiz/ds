@@ -49,6 +49,7 @@ func PutFile(userID metadata.UserID, fileName string, fileContentStream io.Reade
 	// Open connection to node1
 	conn, _ := net.Dial("tcp", "localhost:3333")
 
+	// TODO: could use some stream compression or blocks compression (lz4 ?)
 	// Read 4 bytes at the time and stream it to slave
 	buf := make([]byte, 4)
 	for {
