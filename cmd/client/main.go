@@ -16,10 +16,9 @@ func main() {
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "host",
-				Aliases: []string{"h"},
-				Usage:   "Master node host",
-				Value:   "127.0.0.1",
+				Name:  "host",
+				Usage: "Master node host",
+				Value: "127.0.0.1",
 			},
 			&cli.IntFlag{
 				Name:    "port",
