@@ -28,7 +28,29 @@ func StartSlave(c *cli.Context) error {
 }
 
 func GetFileFromDB(c *cli.Context) error {
-	panic("implement me")
+	host := c.String("host")
+	port := c.Int("port")
+	masterHostname := host + ":" + strconv.Itoa(port)
+	filePath := c.String("file")
+	o := os.Stdout
+	output := c.String("output")
+	var fo *os.File
+	if output == "" {
+		var err error
+		fo, err = os.Create(output)
+		if err != nil {
+			logrus.Fatal("failed to create output file: ", err)
+		}
+		defer fo.Close()
+		o = fo
+	}
+	conn, err := net.Dial("tcp", masterHostname)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	_, _ = conn.Write([]byte("GET|user_1/" + filePath + "|"))
+	_, _ = io.Copy(o, conn)
 }
 
 func PutFileInDB(c *cli.Context) error {
@@ -56,6 +78,6 @@ func PutFileInDB(c *cli.Context) error {
 
 	_, fname := filepath.Split(path)
 
-	_, _ = conn.Write([]byte("user_1/" + fname + "|"))
+	_, _ = conn.Write([]byte("PUT|user_1/" + fname + "|"))
 	_, _ = io.Copy(conn, f)
 }

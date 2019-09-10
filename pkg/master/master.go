@@ -24,6 +24,10 @@ func init() {
 	meta.AddNodes([]metadata.HostName{"slave1:3333", "slave2:3333", "slave3:3333", "slave4:3333", "slave5:3333", "slave6:3333"})
 }
 
+func GetFile(filename metadata.FileName, conn net.Conn) {
+	panic("get file not implemented")
+}
+
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	fileNodes := meta.GetOrCreateFileNodes(filename)
 	firstNodeHostname := fileNodes.Shift()
@@ -49,10 +53,15 @@ func CreateNewSlaveNode(ip string) {
 func handleRequest(conn net.Conn) {
 	fmt.Println("Handle request")
 	reader := bufio.NewReader(conn)
+	method, _ := reader.ReadString('|')
+	method = strings.TrimSuffix(method, "|")
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
-
-	PutFile(metadata.FileName(filename), reader)
+	if method == "GET" {
+		GetFile(metadata.FileName(filename), conn)
+	} else if method == "PUT" {
+		PutFile(metadata.FileName(filename), reader)
+	}
 }
 
 // StartTCPServer ...
