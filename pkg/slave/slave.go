@@ -16,9 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func handleGetRequest(conn net.Conn) {
-	defer conn.Close()
-	reader := bufio.NewReader(conn)
+func handleGetRequest(conn net.Conn, reader *bufio.Reader) {
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
 
@@ -33,9 +31,7 @@ func handleGetRequest(conn net.Conn) {
 	_, _ = io.Copy(conn, fo)
 }
 
-func handlePutRequest(conn net.Conn) {
-	defer conn.Close()
-	reader := bufio.NewReader(conn)
+func handlePutRequest(conn net.Conn, reader *bufio.Reader) {
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
 
@@ -108,9 +104,9 @@ func handleRequest(conn net.Conn) {
 
 	switch method {
 	case "GET":
-		handleGetRequest(conn)
+		handleGetRequest(conn, reader)
 	case "PUT":
-		handlePutRequest(conn)
+		handlePutRequest(conn, reader)
 	}
 }
 
