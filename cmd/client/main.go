@@ -31,6 +31,11 @@ func main() {
 				Value:   3300,
 			},
 			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "display debug logs",
+			},
+			&cli.BoolFlag{
 				Name:  "help",
 				Usage: "show help",
 			},
@@ -46,6 +51,9 @@ func main() {
 			if c.Bool("version") {
 				cli.ShowVersion(c)
 				os.Exit(0)
+			}
+			if c.Bool("verbose") {
+				logrus.SetLevel(logrus.DebugLevel)
 			}
 			return nil
 		},
