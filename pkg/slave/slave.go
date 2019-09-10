@@ -16,34 +16,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func handleRequest(conn net.Conn) {
-	defer func() {
-		if err := conn.Close(); err != nil {
-			logrus.Error(err)
-		}
-	}()
-
+func handleGetRequest(conn net.Conn) {
+	defer conn.Close()
 	reader := bufio.NewReader(conn)
-
-	method, _ := reader.ReadString('|')
-	method = strings.TrimSuffix(method, "|")
-
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
 
-	if method == "GET" {
-		homedir, _ := os.UserHomeDir()
-		path := filepath.Join(homedir, "data", filename)
-		fo, err := os.Open(path)
-		if err != nil {
-			_, _ = conn.Write([]byte("file not found\n"))
-			conn.Close()
-			return
-		}
-		defer fo.Close()
-		_, _ = io.Copy(conn, fo)
+	homedir, _ := os.UserHomeDir()
+	path := filepath.Join(homedir, "data", filename)
+	fo, err := os.Open(path)
+	if err != nil {
+		_, _ = conn.Write([]byte("file not found\n"))
 		return
 	}
+	defer fo.Close()
+	_, _ = io.Copy(conn, fo)
+}
+
+func handlePutRequest(conn net.Conn) {
+	defer conn.Close()
+	reader := bufio.NewReader(conn)
+	filename, _ := reader.ReadString('|')
+	filename = strings.TrimSuffix(filename, "|")
 
 	hostnamesRaw, _ := reader.ReadString('|')
 	hostnamesRaw = strings.TrimSuffix(hostnamesRaw, "|")
@@ -98,6 +92,26 @@ func handleRequest(conn net.Conn) {
 	}
 
 	fmt.Println("received a file: " + filename)
+}
+
+func handleRequest(conn net.Conn) {
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	reader := bufio.NewReader(conn)
+
+	method, _ := reader.ReadString('|')
+	method = strings.TrimSuffix(method, "|")
+
+	switch method {
+	case "GET":
+		handleGetRequest(conn)
+	case "PUT":
+		handlePutRequest(conn)
+	}
 }
 
 func StartTCPServer(host string, port int) {
