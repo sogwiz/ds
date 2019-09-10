@@ -22,7 +22,7 @@ func handleRequest(conn net.Conn) {
 
 	hostnamesRaw, _ := reader.ReadString('|')
 	hostnamesRaw = strings.TrimSuffix(hostnamesRaw, "|")
-	fmt.Println("received hostnames:", hostnamesRaw)
+
 	hostnames := strings.Split(hostnamesRaw, ",")
 
 	needToCopy := false
