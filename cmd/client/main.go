@@ -1,30 +1,61 @@
 package main
 
 import (
-	"io"
-	"net"
+	"ds/pkg/actions"
 	"os"
-	"path/filepath"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/urfave/cli.v2"
 )
 
 func main() {
-	masterHostname := "127.0.0.1:3300"
-
-	homeDir, _ := os.UserHomeDir()
-	path := filepath.Join(homeDir, "go", "src", "ds", "cmd", "ds", "main.go")
-	f, err := os.Open(path)
-	if err != nil {
-		logrus.Fatal("file not found", err)
+	app := &cli.App{
+		Action: func(c *cli.Context) error {
+			logrus.Info("ds client")
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "host",
+				Aliases: []string{"h"},
+				Usage:   "Master node host",
+				Value:   "127.0.0.1",
+			},
+			&cli.IntFlag{
+				Name:    "port",
+				Aliases: []string{"p"},
+				Usage:   "Master node port",
+				Value:   3300,
+			},
+		},
+		Commands: []*cli.Command{
+			{
+				Name:   "get",
+				Usage:  "Get a file from the database",
+				Action: actions.GetFileFromDB,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "file",
+						Aliases: []string{"f"},
+						Usage:   "File to get from the database",
+					},
+				},
+			},
+			{
+				Name:   "put",
+				Usage:  "Put a file in the database",
+				Action: actions.PutFileInDB,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "file",
+						Aliases: []string{"f"},
+						Usage:   "File to put in the database",
+					},
+				},
+			},
+		},
 	}
-	defer f.Close()
-
-	conn, err := net.Dial("tcp", masterHostname)
-	if err != nil {
-		panic(err)
+	if err := app.Run(os.Args); err != nil {
+		logrus.Fatal(err)
 	}
-
-	_, _ = conn.Write([]byte("user_1/myfile.txt|"))
-	_, _ = io.Copy(conn, f)
 }
