@@ -34,7 +34,7 @@ func BeforeApp(c *cli.Context) error {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	config.DataPath = filepath.Join(homedir, "data")
+	config.GetInstance().SetDataPath(filepath.Join(homedir, "data"))
 
 	return nil
 }

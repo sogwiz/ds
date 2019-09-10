@@ -21,7 +21,7 @@ func handleGetRequest(conn net.Conn, reader *bufio.Reader) {
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
 
-	path := filepath.Join(config.DataPath, filename)
+	path := filepath.Join(config.GetInstance().GetDataPath(), filename)
 	fo, err := os.Open(path)
 	if err != nil {
 		_, _ = conn.Write([]byte("file not found\n"))
@@ -41,8 +41,9 @@ func handlePutRequest(conn net.Conn, reader *bufio.Reader) {
 	hostnames := strings.Split(hostnamesRaw, ",")
 
 	dir, file := filepath.Split(filename)
-	_ = os.MkdirAll(filepath.Join(config.DataPath, dir), 0777)
-	fo, err := os.Create(filepath.Join(config.DataPath, dir, file))
+	dataPath := config.GetInstance().GetDataPath()
+	_ = os.MkdirAll(filepath.Join(dataPath, dir), 0777)
+	fo, err := os.Create(filepath.Join(dataPath, dir, file))
 	if err != nil {
 		panic(err)
 	}
