@@ -9,6 +9,8 @@ import (
 )
 
 func main() {
+	logrus.SetReportCaller(true)
+
 	app := &cli.App{
 		Action: func(c *cli.Context) error {
 			logrus.Info("ds client")
