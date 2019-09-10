@@ -69,6 +69,7 @@ func handleRequest(conn net.Conn) {
 		if err != nil {
 			panic(err)
 		}
+		defer nextConn.Close()
 	}
 
 	// Read the incoming connection into the buffer.
