@@ -34,7 +34,6 @@ func handleRequest(conn net.Conn) {
 	if method == "GET" {
 		homedir, _ := os.UserHomeDir()
 		path := filepath.Join(homedir, "data", filename)
-		logrus.Debugf("%s %s", method, path)
 		fo, err := os.Open(path)
 		if err != nil {
 			_, _ = conn.Write([]byte("file not found\n"))
