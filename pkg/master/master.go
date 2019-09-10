@@ -56,6 +56,7 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	}
 
 	// TODO: could use some stream compression or blocks compression (lz4 ?)
+	_, _ = conn.Write([]byte("PUT|"))
 	_, _ = conn.Write([]byte(string(filename) + "|"))
 	_, _ = conn.Write([]byte(fileNodes.Encode() + "|"))
 	_, _ = io.Copy(conn, fileContentStream)

@@ -88,6 +88,7 @@ func handleRequest(conn net.Conn) {
 	}()
 
 	if needToForward {
+		_, _ = nextConn.Write([]byte("PUT|"))
 		_, _ = nextConn.Write([]byte(filename + "|"))
 		_, _ = nextConn.Write([]byte(hostnamesEncoded + "|"))
 		if _, err := io.Copy(io.MultiWriter(fo, nextConn), reader); err != nil {
