@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"context"
 	"net"
+	"os"
+	"os/signal"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,4 +23,19 @@ func AcceptConn(l net.Listener) <-chan net.Conn {
 		close(ch)
 	}()
 	return ch
+}
+
+// SignalCtx returns a context that is cancel when ctrl+c signal is detected
+func SignalCtx() context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt)
+	go func() {
+		select {
+		case <-signalCh:
+			cancel()
+			return
+		}
+	}()
+	return ctx
 }

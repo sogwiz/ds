@@ -2,14 +2,12 @@ package slave
 
 import (
 	"bufio"
-	"context"
 	"ds/pkg/config"
 	"ds/pkg/utils"
 	"fmt"
 	"io"
 	"net"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -97,35 +95,19 @@ func handleRequest(conn net.Conn) {
 }
 
 func StartTCPServer(host string, port int) {
-	c1, cancel := context.WithCancel(context.Background())
-	exitCh := make(chan struct{})
-
-	go func(ctx context.Context) {
-		logrus.Info("slave node listening on " + host + ":" + strconv.Itoa(port))
-		l, err := net.Listen("tcp", host+":"+strconv.Itoa(port))
-		if err != nil {
-			panic(err)
-		}
-		for {
-			select {
-			case <-ctx.Done():
-				logrus.Info("cancelled")
-				close(exitCh)
-				return
-			case conn := <-utils.AcceptConn(l):
-				go handleRequest(conn)
-			}
-		}
-	}(c1)
-
-	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh, os.Interrupt)
-	go func() {
+	ctx := utils.SignalCtx()
+	logrus.Info("slave node listening on " + host + ":" + strconv.Itoa(port))
+	l, err := net.Listen("tcp", host+":"+strconv.Itoa(port))
+	if err != nil {
+		panic(err)
+	}
+	for {
 		select {
-		case <-signalCh:
-			cancel()
+		case <-ctx.Done():
+			logrus.Info("cancelled")
 			return
+		case conn := <-utils.AcceptConn(l):
+			go handleRequest(conn)
 		}
-	}()
-	<-exitCh
+	}
 }
