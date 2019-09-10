@@ -51,7 +51,6 @@ func CreateNewSlaveNode(ip string) {
 }
 
 func handleRequest(conn net.Conn) {
-	fmt.Println("Handle request")
 	reader := bufio.NewReader(conn)
 	method, _ := reader.ReadString('|')
 	method = strings.TrimSuffix(method, "|")
