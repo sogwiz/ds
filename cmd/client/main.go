@@ -37,6 +37,16 @@ func main() {
 				Usage: "print the version",
 			},
 		},
+		Before: func(c *cli.Context) error {
+			if c.Bool("help") {
+				cli.ShowAppHelpAndExit(c, 0)
+			}
+			if c.Bool("version") {
+				cli.ShowVersion(c)
+				os.Exit(0)
+			}
+			return nil
+		},
 		Commands: []*cli.Command{
 			{
 				Name:   "get",
