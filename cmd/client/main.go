@@ -14,6 +14,8 @@ func main() {
 			logrus.Info("ds client")
 			return nil
 		},
+		HideHelp:    true,
+		HideVersion: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "host",
@@ -25,6 +27,14 @@ func main() {
 				Aliases: []string{"p"},
 				Usage:   "master node port",
 				Value:   3300,
+			},
+			&cli.BoolFlag{
+				Name:  "help",
+				Usage: "show help",
+			},
+			&cli.BoolFlag{
+				Name:  "version",
+				Usage: "print the version",
 			},
 		},
 		Commands: []*cli.Command{
