@@ -48,6 +48,7 @@ func PutFileInDB(c *cli.Context) error {
 	if err != nil {
 		panic(err)
 	}
+	defer conn.Close()
 
 	_, fname := filepath.Split(path)
 
