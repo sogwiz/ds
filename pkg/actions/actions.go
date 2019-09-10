@@ -35,7 +35,7 @@ func GetFileFromDB(c *cli.Context) error {
 	o := os.Stdout
 	output := c.String("output")
 	var fo *os.File
-	if output == "" {
+	if output != "" {
 		var err error
 		fo, err = os.Create(output)
 		if err != nil {
