@@ -3,6 +3,7 @@ package actions
 import (
 	"ds/pkg/master"
 	"ds/pkg/slave"
+	"ds/pkg/utils"
 	"io"
 	"net"
 	"os"
@@ -12,6 +13,23 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/urfave/cli.v2"
 )
+
+// BeforeApp this hook is called before any other actions
+func BeforeApp(c *cli.Context) error {
+	logrus.SetFormatter(utils.LogFormatter{})
+	if c.Bool("help") {
+		cli.ShowAppHelpAndExit(c, 0)
+	}
+	if c.Bool("version") {
+		cli.ShowVersion(c)
+		os.Exit(0)
+	}
+	if c.Bool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debug("verbose mode enabled")
+	}
+	return nil
+}
 
 func StartMaster(c *cli.Context) error {
 	host := c.String("host")

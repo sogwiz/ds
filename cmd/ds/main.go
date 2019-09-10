@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-	logrus.SetReportCaller(true)
 	app := &cli.App{
 		HideHelp:    true,
 		HideVersion: true,
@@ -28,20 +27,7 @@ func main() {
 				Usage: "print the version",
 			},
 		},
-		Before: func(c *cli.Context) error {
-			if c.Bool("help") {
-				cli.ShowAppHelpAndExit(c, 0)
-			}
-			if c.Bool("version") {
-				cli.ShowVersion(c)
-				os.Exit(0)
-			}
-			if c.Bool("verbose") {
-				logrus.SetLevel(logrus.DebugLevel)
-				logrus.Debug("verbose mode enabled")
-			}
-			return nil
-		},
+		Before: actions.BeforeApp,
 		Action: func(c *cli.Context) error {
 			logrus.Info("run master or slave")
 			return nil
