@@ -98,7 +98,7 @@ func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames HostNames) {
 }
 
 // GetFileNodes ...
-func (m *Metadata) GetFileNodes(file FileName) (hostnames []HostName, exists bool) {
+func (m *Metadata) GetFileNodes(file FileName) (hostnames HostNames, exists bool) {
 	m.Lock()
 	defer m.Unlock()
 	return m.getFileNodes(file)
