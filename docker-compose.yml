@@ -6,6 +6,8 @@ services:
     image: ds
     restart: always
     command: master
+    ports:
+      - "3300:3333"
     volumes:
       - $HOME/ds/master/data:/root/data
     networks:

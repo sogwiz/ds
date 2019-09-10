@@ -1,18 +1,14 @@
 package actions
 
 import (
+	"ds/pkg/master"
 	"ds/pkg/slave"
-	"time"
 
-	"github.com/sirupsen/logrus"
 	"gopkg.in/urfave/cli.v2"
 )
 
 func StartMaster(c *cli.Context) error {
-	logrus.Info("Starts master")
-	for {
-		time.Sleep(10 * time.Second)
-	}
+	master.StartTCPServer()
 	return nil
 }
 

@@ -3,6 +3,7 @@ package slave
 import (
 	"bufio"
 	"context"
+	"ds/pkg/utils"
 	"fmt"
 	"io"
 	"net"
@@ -29,7 +30,7 @@ func handleRequest(conn net.Conn) {
 	var hostnamesEncoded string
 	var nextConn net.Conn
 
-	if len(hostnames) == 0 {
+	if len(hostnames) == 0 || hostnames[0] == "" {
 		logrus.Debug("should not copy to anyone else")
 	} else {
 		needToCopy = true
@@ -90,20 +91,6 @@ func handleRequest(conn net.Conn) {
 	}
 }
 
-func acceptConn(l net.Listener) <-chan net.Conn {
-	ch := make(chan net.Conn)
-	go func() {
-		conn, err := l.Accept()
-		if err != nil {
-			logrus.Error(err)
-			close(ch)
-		}
-		ch <- conn
-		close(ch)
-	}()
-	return ch
-}
-
 func StartTCPServer() {
 	c1, cancel := context.WithCancel(context.Background())
 	exitCh := make(chan struct{})
@@ -120,7 +107,7 @@ func StartTCPServer() {
 				logrus.Info("cancelled")
 				close(exitCh)
 				return
-			case conn := <-acceptConn(l):
+			case conn := <-utils.AcceptConn(l):
 				go handleRequest(conn)
 			}
 		}
