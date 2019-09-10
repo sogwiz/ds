@@ -24,8 +24,27 @@ func handleRequest(conn net.Conn) {
 	}()
 
 	reader := bufio.NewReader(conn)
+
+	method, _ := reader.ReadString('|')
+	method = strings.TrimSuffix(method, "|")
+
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
+
+	if method == "GET" {
+		homedir, _ := os.UserHomeDir()
+		path := filepath.Join(homedir, "data", filename)
+		logrus.Debugf("%s %s", method, path)
+		fo, err := os.Open(path)
+		if err != nil {
+			_, _ = conn.Write([]byte("file not found\n"))
+			conn.Close()
+			return
+		}
+		defer fo.Close()
+		_, _ = io.Copy(conn, fo)
+		return
+	}
 
 	hostnamesRaw, _ := reader.ReadString('|')
 	hostnamesRaw = strings.TrimSuffix(hostnamesRaw, "|")

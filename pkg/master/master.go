@@ -22,17 +22,27 @@ func init() {
 	meta = metadata.NewMetadata()
 	meta.SetNumReplica(3)
 	meta.AddNodes([]metadata.HostName{"slave1:3333", "slave2:3333", "slave3:3333", "slave4:3333", "slave5:3333", "slave6:3333"})
+	meta.SetFileNodes(metadata.FileName("user_1/myfile.txt"), []metadata.HostName{"slave1:3333"})
 }
 
 func GetFile(filename metadata.FileName, conn net.Conn) {
-	_, exists := meta.GetFileNodes(filename)
+	logrus.Debugf("GetFile %s", filename)
+	nodes, exists := meta.GetFileNodes(filename)
 	if !exists {
 		_, _ = conn.Write([]byte("file not found\n"))
 		conn.Close()
 		return
 	}
-	// randomNode := nodes.Random()
-	logrus.Error("get file not implemented")
+	randomNode := nodes.Random()
+	logrus.Debugf("get file from random node %s", randomNode)
+	nodeConn, err := net.Dial("tcp", string(randomNode))
+	if err != nil {
+		panic(err)
+	}
+	defer nodeConn.Close()
+	_, _ = nodeConn.Write([]byte("GET|" + string(filename) + "|"))
+	_, _ = io.Copy(conn, nodeConn)
+	conn.Close()
 }
 
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
@@ -58,6 +68,7 @@ func CreateNewSlaveNode(ip string) {
 }
 
 func handleRequest(conn net.Conn) {
+	logrus.Debug("master handle conn")
 	reader := bufio.NewReader(conn)
 	method, _ := reader.ReadString('|')
 	method = strings.TrimSuffix(method, "|")

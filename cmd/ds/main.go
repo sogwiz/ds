@@ -14,17 +14,6 @@ func main() {
 		HideHelp:    true,
 		HideVersion: true,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "host",
-				Usage: "master node host",
-				Value: "127.0.0.1",
-			},
-			&cli.IntFlag{
-				Name:    "port",
-				Aliases: []string{"p"},
-				Usage:   "master node port",
-				Value:   3300,
-			},
 			&cli.BoolFlag{
 				Name:    "verbose",
 				Aliases: []string{"v"},
@@ -49,6 +38,7 @@ func main() {
 			}
 			if c.Bool("verbose") {
 				logrus.SetLevel(logrus.DebugLevel)
+				logrus.Debug("verbose mode enabled")
 			}
 			return nil
 		},
@@ -96,6 +86,17 @@ func main() {
 				Usage:  "Get a file from the database",
 				Action: actions.GetFileFromDB,
 				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "host",
+						Usage: "master node host",
+						Value: "127.0.0.1",
+					},
+					&cli.IntFlag{
+						Name:    "port",
+						Aliases: []string{"p"},
+						Usage:   "master node port",
+						Value:   3300,
+					},
 					&cli.StringFlag{
 						Name:    "file",
 						Aliases: []string{"f"},
