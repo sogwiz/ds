@@ -51,6 +51,7 @@ func GetFileFromDB(c *cli.Context) error {
 	defer conn.Close()
 	_, _ = conn.Write([]byte("GET|user_1/" + filePath + "|"))
 	_, _ = io.Copy(o, conn)
+	return nil
 }
 
 func PutFileInDB(c *cli.Context) error {
@@ -80,4 +81,5 @@ func PutFileInDB(c *cli.Context) error {
 
 	_, _ = conn.Write([]byte("PUT|user_1/" + fname + "|"))
 	_, _ = io.Copy(conn, f)
+	return nil
 }
