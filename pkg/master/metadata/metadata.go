@@ -31,6 +31,11 @@ func (h *HostNames) Shift() (out HostName) {
 	return
 }
 
+// Random returns a random hostname from the list
+func (h *HostNames) Random() HostName {
+	return (*h)[rand.Intn(len(*h))]
+}
+
 // Metadata ...
 type Metadata struct {
 	sync.RWMutex
