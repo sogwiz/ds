@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"math/rand"
+	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -11,6 +12,24 @@ type FileName string
 
 // HostName ...
 type HostName string
+
+// HostNames ...
+type HostNames []HostName
+
+// Encode returns encoded hostnames (eg. hostname1,hostname2,hostname3)
+func (h *HostNames) Encode() string {
+	var arr []string
+	for _, hostname := range *h {
+		arr = append(arr, string(hostname))
+	}
+	return strings.Join(arr, ",")
+}
+
+// Shift remove and return the first element from the list
+func (h *HostNames) Shift() (out HostName) {
+	out, *h = (*h)[0], (*h)[1:]
+	return
+}
 
 // Metadata ...
 type Metadata struct {
@@ -67,7 +86,7 @@ func (m *Metadata) SetFileNodes(file FileName, nodes []HostName) {
 }
 
 // GetOrCreateFileNodes ...
-func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames []HostName) {
+func (m *Metadata) GetOrCreateFileNodes(file FileName) (hostnames HostNames) {
 	m.Lock()
 	defer m.Unlock()
 	return m.getOrCreateFileNodes(file)
@@ -98,7 +117,7 @@ func (m *Metadata) setFileNodes(file FileName, nodes []HostName) {
 	m.files[file] = nodes
 }
 
-func (m *Metadata) getOrCreateFileNodes(file FileName) (hostnames []HostName) {
+func (m *Metadata) getOrCreateFileNodes(file FileName) (hostnames HostNames) {
 	hostnames, exists := m.getFileNodes(file)
 	if exists {
 		return hostnames
