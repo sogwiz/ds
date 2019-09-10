@@ -25,7 +25,14 @@ func init() {
 }
 
 func GetFile(filename metadata.FileName, conn net.Conn) {
-	panic("get file not implemented")
+	_, exists := meta.GetFileNodes(filename)
+	if !exists {
+		_, _ = conn.Write([]byte("file not found\n"))
+		conn.Close()
+		return
+	}
+	// randomNode := nodes.Random()
+	logrus.Error("get file not implemented")
 }
 
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
