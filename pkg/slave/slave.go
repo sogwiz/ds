@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -77,13 +78,13 @@ func handleRequest(conn net.Conn) {
 	}
 }
 
-func StartTCPServer() {
+func StartTCPServer(host string, port int) {
 	c1, cancel := context.WithCancel(context.Background())
 	exitCh := make(chan struct{})
 
 	go func(ctx context.Context) {
-		logrus.Info("slave server listening on 0.0.0.0:3333")
-		l, err := net.Listen("tcp", "0.0.0.0:3333")
+		logrus.Info("slave node listening on " + host + ":" + strconv.Itoa(port))
+		l, err := net.Listen("tcp", host+":"+strconv.Itoa(port))
 		if err != nil {
 			panic(err)
 		}

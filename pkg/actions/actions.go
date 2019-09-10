@@ -14,12 +14,16 @@ import (
 )
 
 func StartMaster(c *cli.Context) error {
-	master.StartTCPServer()
+	host := c.String("host")
+	port := c.Int("port")
+	master.StartTCPServer(host, port)
 	return nil
 }
 
 func StartSlave(c *cli.Context) error {
-	slave.StartTCPServer()
+	host := c.String("host")
+	port := c.Int("port")
+	slave.StartTCPServer(host, port)
 	return nil
 }
 

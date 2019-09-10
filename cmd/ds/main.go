@@ -19,11 +19,35 @@ func main() {
 				Name:   "master",
 				Usage:  "Starts the master node",
 				Action: actions.StartMaster,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "host",
+						Usage: "Master host",
+						Value: "127.0.0.1",
+					},
+					&cli.IntFlag{
+						Name:  "port",
+						Usage: "Master port",
+						Value: 3300,
+					},
+				},
 			},
 			{
 				Name:   "slave",
 				Usage:  "Starts the slave node",
 				Action: actions.StartSlave,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "host",
+						Usage: "Slave host",
+						Value: "127.0.0.1",
+					},
+					&cli.IntFlag{
+						Name:  "port",
+						Usage: "Slave port",
+						Value: 3333,
+					},
+				},
 			},
 		},
 	}
