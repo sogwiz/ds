@@ -17,6 +17,12 @@ import (
 )
 
 func handleRequest(conn net.Conn) {
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	reader := bufio.NewReader(conn)
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
@@ -26,7 +32,7 @@ func handleRequest(conn net.Conn) {
 
 	hostnames := strings.Split(hostnamesRaw, ",")
 
-	needToCopy := false
+	needToForward := false
 
 	var hostnamesEncoded string
 	var nextConn net.Conn
@@ -34,7 +40,7 @@ func handleRequest(conn net.Conn) {
 	if len(hostnames) == 0 || hostnames[0] == "" {
 		logrus.Debug("should not copy to anyone else")
 	} else {
-		needToCopy = true
+		needToForward = true
 
 		copyToHostname := hostnames[0]                      // We need to copy the file to this guy
 		hostnamesEncoded = strings.Join(hostnames[1:], ",") // This is the list of hostnames to pass along
@@ -61,7 +67,7 @@ func handleRequest(conn net.Conn) {
 		}
 	}()
 
-	if needToCopy {
+	if needToForward {
 		_, _ = nextConn.Write([]byte(filename + "|"))
 		_, _ = nextConn.Write([]byte(hostnamesEncoded + "|"))
 		if _, err := io.Copy(io.MultiWriter(fo, nextConn), reader); err != nil {
@@ -72,10 +78,6 @@ func handleRequest(conn net.Conn) {
 	}
 
 	fmt.Println("received a file: " + filename)
-
-	if err := conn.Close(); err != nil {
-		logrus.Error(err)
-	}
 }
 
 func StartTCPServer(host string, port int) {
