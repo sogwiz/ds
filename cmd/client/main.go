@@ -39,6 +39,11 @@ func main() {
 						Aliases: []string{"f"},
 						Usage:   "File to get from the database",
 					},
+					&cli.StringFlag{
+						Name:    "output",
+						Aliases: []string{"o"},
+						Usage:   "If defined, will store the file at this location (otherwise stdout)",
+					},
 				},
 			},
 			{
