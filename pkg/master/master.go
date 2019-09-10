@@ -85,7 +85,7 @@ func StartTCPServer(host string, port int) {
 	logrus.Info("master node listening on " + host + ":" + strconv.Itoa(port))
 	l, err := net.Listen("tcp", host+":"+strconv.Itoa(port))
 	if err != nil {
-		panic(err)
+		logrus.Fatal("failed to start tcp server: ", err)
 	}
 	for {
 		select {
