@@ -17,13 +17,13 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "host",
-				Usage: "Master node host",
+				Usage: "master node host",
 				Value: "127.0.0.1",
 			},
 			&cli.IntFlag{
 				Name:    "port",
 				Aliases: []string{"p"},
-				Usage:   "Master node port",
+				Usage:   "master node port",
 				Value:   3300,
 			},
 		},
@@ -36,12 +36,12 @@ func main() {
 					&cli.StringFlag{
 						Name:    "file",
 						Aliases: []string{"f"},
-						Usage:   "File to get from the database",
+						Usage:   "file to get from the database",
 					},
 					&cli.StringFlag{
 						Name:    "output",
 						Aliases: []string{"o"},
-						Usage:   "If defined, will store the file at this location (otherwise stdout)",
+						Usage:   "if defined, will store the file at this location (otherwise stdout)",
 					},
 				},
 			},
@@ -53,7 +53,7 @@ func main() {
 					&cli.StringFlag{
 						Name:    "file",
 						Aliases: []string{"f"},
-						Usage:   "File to put in the database",
+						Usage:   "file to put in the database",
 					},
 				},
 			},
