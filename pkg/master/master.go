@@ -26,29 +26,18 @@ func init() {
 
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	fileNodes := meta.GetOrCreateFileNodes(filename)
+	firstNodeHostname := fileNodes.Shift()
 
-	// TODO: linked list, so datanode transfer file with each others instead of master node
 	// Open connection to node1
-	fmt.Println(fileNodes)
-	conn, err := net.Dial("tcp", string(fileNodes[0]))
+	conn, err := net.Dial("tcp", string(firstNodeHostname))
 	if err != nil {
 		panic(err)
 	}
 
-	_, _ = conn.Write([]byte(string(filename) + "|"))
-
-	remainingHostnamesStr := fileNodes[1:]
-	hostnamesStr := make([]string, 0)
-	for _, hn := range remainingHostnamesStr {
-		hostnamesStr = append(hostnamesStr, string(hn))
-	}
-	hostnamesEncoded := strings.Join(hostnamesStr, ",")
-	_, _ = conn.Write([]byte(hostnamesEncoded + "|"))
-
 	// TODO: could use some stream compression or blocks compression (lz4 ?)
+	_, _ = conn.Write([]byte(string(filename) + "|"))
+	_, _ = conn.Write([]byte(fileNodes.Encode() + "|"))
 	_, _ = io.Copy(conn, fileContentStream)
-
-	// Stream file content to it with metadata about replicas
 
 	fmt.Println("nodes:", fileNodes)
 }
