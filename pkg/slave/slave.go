@@ -67,21 +67,7 @@ func handleRequest(conn net.Conn) {
 			panic(err)
 		}
 	} else {
-		// make a buffer to keep chunks that are read
-		buf := make([]byte, 1024)
-		for {
-			n, err := reader.Read(buf)
-			if err != nil && err != io.EOF {
-				panic(err)
-			}
-			if n == 0 {
-				break
-			}
-			// write a chunk
-			if _, err := fo.Write(buf[:n]); err != nil {
-				panic(err)
-			}
-		}
+		_, _ = io.Copy(fo, reader)
 	}
 
 	fmt.Println("received a file: " + filename)

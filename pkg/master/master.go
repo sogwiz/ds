@@ -20,9 +20,7 @@ var meta *metadata.Metadata
 func init() {
 	meta = metadata.NewMetadata()
 	meta.SetNumReplica(3)
-	//meta.AddNodes([]metadata.HostName{"slave1:3333", "slave2:3334", "slave3:3335", "slave4:3336", "slave5:3337", "slave6:3338"})
 	meta.AddNodes([]metadata.HostName{"slave1:3333", "slave2:3333", "slave3:3333", "slave4:3333", "slave5:3333", "slave6:3333"})
-	//meta.AddNodes([]metadata.HostName{"slave1", "slave2", "slave3", "slave4", "slave5", "slave6"})
 }
 
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
@@ -47,20 +45,7 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	_, _ = conn.Write([]byte(hostnamesEncoded + "|"))
 
 	// TODO: could use some stream compression or blocks compression (lz4 ?)
-	// Read 1024 bytes at the time and stream it to slave
-	buf := make([]byte, 1024)
-	for {
-		n, err := fileContentStream.Read(buf)
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
-		if n == 0 {
-			break
-		}
-		if _, err := conn.Write(buf[:n]); err != nil {
-			logrus.Error(err)
-		}
-	}
+	_, _ = io.Copy(conn, fileContentStream)
 
 	// Stream file content to it with metadata about replicas
 
