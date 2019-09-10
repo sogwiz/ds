@@ -40,28 +40,6 @@ func handlePutRequest(conn net.Conn, reader *bufio.Reader) {
 
 	hostnames := strings.Split(hostnamesRaw, ",")
 
-	needToForward := false
-
-	var hostnamesEncoded string
-	var nextConn net.Conn
-
-	if len(hostnames) == 0 || hostnames[0] == "" {
-		logrus.Debug("should not copy to anyone else")
-	} else {
-		needToForward = true
-
-		copyToHostname := hostnames[0]                      // We need to copy the file to this guy
-		hostnamesEncoded = strings.Join(hostnames[1:], ",") // This is the list of hostnames to pass along
-
-		var err error
-		nextConn, err = net.Dial("tcp", copyToHostname)
-		if err != nil {
-			panic(err)
-		}
-		defer nextConn.Close()
-	}
-
-	// Read the incoming connection into the buffer.
 	homedir, _ := os.UserHomeDir()
 	dir, file := filepath.Split(filename)
 	_ = os.MkdirAll(filepath.Join(homedir, "data", dir), 0777)
@@ -76,15 +54,23 @@ func handlePutRequest(conn net.Conn, reader *bufio.Reader) {
 		}
 	}()
 
-	if needToForward {
+	if len(hostnames) == 0 || hostnames[0] == "" {
+		_, _ = io.Copy(fo, reader)
+	} else {
+		copyToHostname := hostnames[0]                       // We need to copy the file to this guy
+		hostnamesEncoded := strings.Join(hostnames[1:], ",") // This is the list of hostnames to pass along
+
+		nextConn, err := net.Dial("tcp", copyToHostname)
+		if err != nil {
+			panic(err)
+		}
+		defer nextConn.Close()
 		_, _ = nextConn.Write([]byte("PUT|"))
 		_, _ = nextConn.Write([]byte(filename + "|"))
 		_, _ = nextConn.Write([]byte(hostnamesEncoded + "|"))
 		if _, err := io.Copy(io.MultiWriter(fo, nextConn), reader); err != nil {
 			panic(err)
 		}
-	} else {
-		_, _ = io.Copy(fo, reader)
 	}
 
 	fmt.Println("received a file: " + filename)
