@@ -3,6 +3,7 @@ package slave
 import (
 	"bufio"
 	"context"
+	"ds/pkg/config"
 	"ds/pkg/utils"
 	"fmt"
 	"io"
@@ -20,8 +21,7 @@ func handleGetRequest(conn net.Conn, reader *bufio.Reader) {
 	filename, _ := reader.ReadString('|')
 	filename = strings.TrimSuffix(filename, "|")
 
-	homedir, _ := os.UserHomeDir()
-	path := filepath.Join(homedir, "data", filename)
+	path := filepath.Join(config.DataPath, filename)
 	fo, err := os.Open(path)
 	if err != nil {
 		_, _ = conn.Write([]byte("file not found\n"))
@@ -40,10 +40,9 @@ func handlePutRequest(conn net.Conn, reader *bufio.Reader) {
 
 	hostnames := strings.Split(hostnamesRaw, ",")
 
-	homedir, _ := os.UserHomeDir()
 	dir, file := filepath.Split(filename)
-	_ = os.MkdirAll(filepath.Join(homedir, "data", dir), 0777)
-	fo, err := os.Create(filepath.Join(homedir, "data", dir, file))
+	_ = os.MkdirAll(filepath.Join(config.DataPath, dir), 0777)
+	fo, err := os.Create(filepath.Join(config.DataPath, dir, file))
 	if err != nil {
 		panic(err)
 	}

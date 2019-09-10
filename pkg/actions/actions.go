@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"ds/pkg/config"
 	"ds/pkg/master"
 	"ds/pkg/slave"
 	"ds/pkg/utils"
@@ -28,6 +29,13 @@ func BeforeApp(c *cli.Context) error {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debug("verbose mode enabled")
 	}
+
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	config.DataPath = filepath.Join(homedir, "data")
+
 	return nil
 }
 
