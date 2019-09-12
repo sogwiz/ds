@@ -101,6 +101,17 @@ func main() {
 				Action: actions.PutFileInDB,
 				Flags: []cli.Flag{
 					&cli.StringFlag{
+						Name:  "host",
+						Usage: "master node host",
+						Value: "127.0.0.1",
+					},
+					&cli.IntFlag{
+						Name:    "port",
+						Aliases: []string{"p"},
+						Usage:   "master node port",
+						Value:   3300,
+					},
+					&cli.StringFlag{
 						Name:    "file",
 						Aliases: []string{"f"},
 						Usage:   "file to put in the database",

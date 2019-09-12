@@ -52,6 +52,9 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 		panic(err)
 	}
 
+	//close the connection to the slave
+	defer conn.Close()
+
 	// TODO: could use some stream compression or blocks compression (lz4 ?)
 	_, _ = conn.Write([]byte("PUT|"))
 	_, _ = conn.Write([]byte(string(filename) + "|"))
@@ -75,6 +78,8 @@ func handleRequest(conn net.Conn) {
 	if method == "GET" {
 		GetFile(metadata.FileName(filename), conn)
 	} else if method == "PUT" {
+		//close the client connection
+		defer conn.Close()
 		PutFile(metadata.FileName(filename), reader)
 	}
 }
