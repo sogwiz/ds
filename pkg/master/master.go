@@ -27,7 +27,6 @@ func GetFile(filename metadata.FileName, conn net.Conn) {
 	nodes, exists := meta.GetFileNodes(filename)
 	if !exists {
 		_, _ = conn.Write([]byte("file not found\n"))
-		conn.Close()
 		return
 	}
 	randomNode := nodes.Random()
@@ -39,7 +38,6 @@ func GetFile(filename metadata.FileName, conn net.Conn) {
 	defer nodeConn.Close()
 	_, _ = nodeConn.Write([]byte("GET|" + string(filename) + "|"))
 	_, _ = io.Copy(conn, nodeConn)
-	conn.Close()
 }
 
 func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
@@ -69,6 +67,8 @@ func CreateNewSlaveNode(ip string) {
 }
 
 func handleRequest(conn net.Conn) {
+	//close the client connection
+	defer conn.Close()
 	logrus.Debug("master handle conn")
 	reader := bufio.NewReader(conn)
 	method, _ := reader.ReadString('|')
@@ -78,8 +78,6 @@ func handleRequest(conn net.Conn) {
 	if method == "GET" {
 		GetFile(metadata.FileName(filename), conn)
 	} else if method == "PUT" {
-		//close the client connection
-		defer conn.Close()
 		PutFile(metadata.FileName(filename), reader)
 	}
 }
