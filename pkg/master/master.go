@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"ds/pkg/master/metadata"
 	"ds/pkg/utils"
-	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -45,21 +44,17 @@ func PutFile(filename metadata.FileName, fileContentStream io.Reader) {
 	firstNodeHostname := fileNodes.Shift()
 
 	// Open connection to node1
-	conn, err := net.Dial("tcp", string(firstNodeHostname))
+	slaveConn, err := net.Dial("tcp", string(firstNodeHostname))
 	if err != nil {
 		panic(err)
 	}
-
-	//close the connection to the slave
-	defer conn.Close()
+	defer slaveConn.Close()
 
 	// TODO: could use some stream compression or blocks compression (lz4 ?)
-	_, _ = conn.Write([]byte("PUT|"))
-	_, _ = conn.Write([]byte(string(filename) + "|"))
-	_, _ = conn.Write([]byte(fileNodes.Encode() + "|"))
-	_, _ = io.Copy(conn, fileContentStream)
-
-	fmt.Println("nodes:", fileNodes)
+	_, _ = slaveConn.Write([]byte("PUT|"))
+	_, _ = slaveConn.Write([]byte(string(filename) + "|"))
+	_, _ = slaveConn.Write([]byte(fileNodes.Encode() + "|"))
+	_, _ = io.Copy(slaveConn, fileContentStream)
 }
 
 func CreateNewSlaveNode(ip string) {
